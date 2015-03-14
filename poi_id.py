@@ -7,6 +7,8 @@ from sklearn import preprocessing
 from time import time
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 from sklearn.grid_search import GridSearchCV
 sys.path.append("../tools/")
 
@@ -14,35 +16,11 @@ sys.path.append("../tools/")
 from feature_format import featureFormat
 from feature_format import targetFeatureSplit
 
-# function for calculation ratio of true positives
-# out of all positives (true + false)
-def precision(pred,labels_test):
-    precision, precision_d, precision_n=0.0,0.0,0.0
-    for i in range(0,len(pred)):
-        if pred[i]==1:
-            precision_d+=1
-            if labels_test[i]==1:
-                precision_n+=1
-    if precision_d!=0:
-        precision=precision_n/precision_d
-    return precision
-
-# function for calculation ratio of true positives
-# out of true positives and false negatives
-def recall(pred,labels_test):
-    recall, recall_d, recall_n=0.0,0.0,0.0
-    for i in range(0,len(pred)):
-        if labels_test[i]==1:
-            recall_d+=1
-            if pred[i]==1:
-                recall_n+=1
-    if recall_d!=0:
-        recall=recall_n/recall_d
-    return recall
 
 ### features_list is a list of strings, each of which is a feature name
 ### first feature must be "poi", as this will be singled out as the label
-features_list = ["poi", "salary", "bonus", "fraction_from_poi_email", "fraction_to_poi_email", 'deferral_payments', 'total_payments', 'loan_advances', 'restricted_stock_deferred', 'deferred_income', 'total_stock_value']
+
+features_list = ["poi", "fraction_from_poi_email", "fraction_to_poi_email", 'shared_receipt_with_poi']
 
 ### load the dictionary containing the dataset
 data_dict = pickle.load(open("final_project_dataset.pkl", "r") )
@@ -190,29 +168,25 @@ indices = np.argsort(importances)[::-1]
 #print "NB algorithm time:", round(time()-t0, 3), "s"
 
 
-### use gridCV for tuning parameters
-print("Searching the best parameters for Decision Tree")
+### use manual tuning parameter min_samples_split
 t0 = time()
-param_grid = {'criterion': ('gini','entropy'),
-              'splitter':('best','random'),
-              'min_samples_split':[2,3,4,5,6,8],
-                'max_features':('auto','sqrt','log2',None),
-                'max_depth':[None,1,2,10,50],
-                'max_leaf_nodes':[None,2,5,6,7,8,9,10,13]}
-clf = GridSearchCV(DecisionTreeClassifier(random_state=42),param_grid)
+clf = DecisionTreeClassifier(min_samples_split=5)
 clf = clf.fit(features_train,labels_train)
 pred= clf.predict(features_test)
 print("done in %0.3fs" % (time() - t0))
-print("Best parameters found by grid search:")
-print(clf.best_estimator_)
 
 acc=accuracy_score(labels_test, pred)
 
 print "Validating algorithm:"
 print "accuracy after tuning = ", acc
-print 'precision = ', precision(pred, labels_test)
-print 'recall = ', recall(pred, labels_test)
 
+# function for calculation ratio of true positives
+# out of all positives (true + false)
+print 'precision = ', precision_score(labels_test,pred)
+
+# function for calculation ratio of true positives
+# out of true positives and false negatives
+print 'recall = ', recall_score(labels_test,pred)
 
 
 ### dump your classifier, dataset and features_list so
