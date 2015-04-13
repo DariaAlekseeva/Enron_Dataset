@@ -1,4 +1,4 @@
-# Enron-Dataset
+# Enron Dataset
 ####Final Project for Udacity Machine Learning Course
 
 Link to Udacity repo for this project is https://github.com/udacity/ud120-projects  
